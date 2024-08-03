@@ -33,16 +33,6 @@ public class UserController {
     @GetMapping("/me")
     public ResponseEntity<Object> authenticatedUser() {
         try {
-//            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-//
-//            if (authentication == null || !authentication.isAuthenticated() || !(authentication.getPrincipal() instanceof CustomUserDetails)) {
-//                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("User is not authenticated");
-//            }
-//
-//            CustomUserDetails currentUserDetails = (CustomUserDetails) authentication.getPrincipal();
-//            User currentUser = currentUserDetails.getUser();
-
-
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             CustomUserDetails currentUserDetails = (CustomUserDetails) authentication.getPrincipal();
             User currentUser = currentUserDetails.getUser();
