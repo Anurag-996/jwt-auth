@@ -6,8 +6,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.UpdateTimestamp;
-
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -28,7 +26,7 @@ public class PasswordReset {
     @ElementCollection
     @CollectionTable(name = "password_reset_attempt", joinColumns = @JoinColumn(name = "password_reset_id"))
     @Column(name = "attempt_date")
-    private List<Date> resetAttempts = new ArrayList<>();
+    private List<Date> resetAttempts;
 
     @Column(name = "reset_token")
     private String resetToken;
