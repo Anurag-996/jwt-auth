@@ -1,6 +1,5 @@
 package com.vid.VideoCall.Config;
 
-import com.vid.VideoCall.Jwt.JwtAuthenticationFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -9,44 +8,43 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import com.vid.VideoCall.Jwt.JwtAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
 
-    private final DaoAuthenticationProvider daoAuthenticationProvider;
-    private final JwtAuthenticationFilter jwtAuthenticationFilter;
-    private final RedisRateLimitingFilter redisRateLimitingFilter;
+        private final DaoAuthenticationProvider daoAuthenticationProvider;
+        private final RedisRateLimitingFilter redisRateLimitingFilter;
+        private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
-    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter,
-            DaoAuthenticationProvider daoAuthenticationProvider,
-            RedisRateLimitingFilter redisRateLimitingFilter) {
-        this.daoAuthenticationProvider = daoAuthenticationProvider;
-        this.jwtAuthenticationFilter = jwtAuthenticationFilter;
-        this.redisRateLimitingFilter = redisRateLimitingFilter;
-    }
+        public SecurityConfig(DaoAuthenticationProvider daoAuthenticationProvider,
+                        RedisRateLimitingFilter redisRateLimitingFilter,
+                        JwtAuthenticationFilter jwtAuthenticationFilter) {
+                this.daoAuthenticationProvider = daoAuthenticationProvider;
+                this.redisRateLimitingFilter = redisRateLimitingFilter;
+                this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+        }
 
-    @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-            http.csrf(csrf -> csrf.disable()) // Disable CSRF (replace with your CSRF configuration if needed)
-                            .authorizeHttpRequests(auth -> auth
-                                            .requestMatchers("/auth/login", "/auth/signup", "/api/v1/users/getAll")
-                                            .permitAll() // Permit specific endpoints
-                                            .anyRequest().authenticated()) // Authenticate all other requests
-                            .sessionManagement(
-                                            session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // Stateless
-                                                                                                                       // session
-                                                                                                                       // management
-                            .logout(logout -> logout
-                                            .logoutUrl("/auth/logout")
-                                            .logoutSuccessUrl("/login?logout")
-                                            .invalidateHttpSession(true)
-                                            .deleteCookies("JSESSIONID"))
-                            .authenticationProvider(daoAuthenticationProvider)
-                            .addFilterBefore(redisRateLimitingFilter, UsernamePasswordAuthenticationFilter.class)
-                            .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+        @Bean
+        public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+                http.csrf(csrf -> csrf.disable()) // Disable CSRF (replace with your CSRF configuration if needed)
+                                .authorizeHttpRequests(auth -> auth
+                                                .requestMatchers("/auth/signup", "/auth/login", "/api/v1/users/getAll")
+                                                .permitAll()
+                                                .anyRequest().authenticated())
+                                .sessionManagement(session -> session
+                                                .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                                .logout(logout -> logout
+                                                .logoutUrl("/logout")
+                                                .logoutSuccessUrl("/login?logout")
+                                                .invalidateHttpSession(true)
+                                                .deleteCookies("JSESSIONID"))
+                                .authenticationProvider(daoAuthenticationProvider)
+                                .addFilterBefore(redisRateLimitingFilter, UsernamePasswordAuthenticationFilter.class)
+                                .addFilterBefore(jwtAuthenticationFilter,
+                                                UsernamePasswordAuthenticationFilter.class);
 
-            return http.build();
-    }
-
+                return http.build();
+        }
 }

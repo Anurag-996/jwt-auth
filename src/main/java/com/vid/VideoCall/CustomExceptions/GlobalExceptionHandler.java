@@ -12,6 +12,7 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import java.net.URI;
 import java.util.Map;
 
 @RestControllerAdvice
@@ -27,7 +28,6 @@ public class GlobalExceptionHandler {
             AccessDeniedException.class, HttpStatus.FORBIDDEN,
             SignatureException.class, HttpStatus.FORBIDDEN,
             ExpiredJwtException.class, HttpStatus.FORBIDDEN,
-            MissingTokenException.class, HttpStatus.UNAUTHORIZED,
             TokenBlacklistedException.class, HttpStatus.UNAUTHORIZED);
 
     // Mapping exceptions to custom error descriptions
@@ -38,38 +38,43 @@ public class GlobalExceptionHandler {
             AccessDeniedException.class, "You are not authorized to access this resource.",
             SignatureException.class, "The JWT signature is invalid.",
             ExpiredJwtException.class, "The JWT token has expired.",
-            MissingTokenException.class, "The Authorization token is required but was not provided.",
             TokenBlacklistedException.class, "The provided JWT token is blacklisted.");
+
+    // Mapping exceptions to custom error types (URIs)
+    private static final Map<Class<? extends Exception>, URI> EXCEPTION_TYPE_MAP = Map.of(
+            BadCredentialsException.class, URI.create("urn:errors:bad-credentials"),
+            AuthenticationException.class, URI.create("urn:errors:authentication-failed"),
+            AccountStatusException.class, URI.create("urn:errors:account-locked"),
+            AccessDeniedException.class, URI.create("urn:errors:access-denied"),
+            SignatureException.class, URI.create("urn:errors:invalid-signature"),
+            ExpiredJwtException.class, URI.create("urn:errors:token-expired"),
+            TokenBlacklistedException.class, URI.create("urn:errors:blacklisted-token"));
 
     @ExceptionHandler(Exception.class)
     public ProblemDetail handleSecurityException(Exception exception) {
         // Log the exception (including stack trace)
         logException(exception);
 
-        // Create a ProblemDetail response
-        ProblemDetail errorDetail = createProblemDetail(exception);
-
-        if (errorDetail == null) {
-            errorDetail = ProblemDetail.forStatusAndDetail(HttpStatus.INTERNAL_SERVER_ERROR,
-                    "An unexpected error occurred.");
-            errorDetail.setProperty("description", "Unknown internal server error.");
-        }
-
-        return errorDetail;
+        // Create and return a ProblemDetail response
+        return createProblemDetail(exception);
     }
 
     private ProblemDetail createProblemDetail(Exception exception) {
-        // Determine the HTTP status and description based on the exception type
+        // Determine the HTTP status, description, and type based on the exception type
         HttpStatus status = EXCEPTION_STATUS_MAP.getOrDefault(exception.getClass(), HttpStatus.INTERNAL_SERVER_ERROR);
         String description = EXCEPTION_DESCRIPTION_MAP.getOrDefault(exception.getClass(), "Unexpected error occurred.");
+        URI type = EXCEPTION_TYPE_MAP.getOrDefault(exception.getClass(), URI.create("urn:errors:unknown-error"));
 
-        return buildProblemDetail(status, exception.getMessage(), description);
+        // Build and return the ProblemDetail object
+        return buildProblemDetail(status, exception.getMessage(), description, type);
     }
 
-    private ProblemDetail buildProblemDetail(HttpStatus status, String message, String description) {
-        // Build and return the ProblemDetail object
+    private ProblemDetail buildProblemDetail(HttpStatus status, String message, String description, URI type) {
+        // Create a ProblemDetail object and set the relevant properties
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(status, message);
         problemDetail.setProperty("description", description);
+        problemDetail.setType(type); // Set the error type
+
         return problemDetail;
     }
 
@@ -79,16 +84,4 @@ public class GlobalExceptionHandler {
         // Stack trace logging
         exception.printStackTrace();
     }
-
-    @ExceptionHandler(MissingTokenException.class)
-    public ProblemDetail handleMissingTokenException(MissingTokenException exception) {
-        // Log the exception
-        logger.error("Missing token exception: {}", exception.getMessage());
-
-        // Create ProblemDetail response for MissingTokenException
-        ProblemDetail errorDetail = ProblemDetail.forStatusAndDetail(HttpStatus.UNAUTHORIZED, exception.getMessage());
-        errorDetail.setProperty("description", "The Authorization token is required but was not provided.");
-        return errorDetail;
-    }
-
 }
