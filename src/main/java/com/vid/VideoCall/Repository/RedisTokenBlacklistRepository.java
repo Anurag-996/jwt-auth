@@ -1,6 +1,8 @@
 package com.vid.VideoCall.Repository;
 
 import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Repository;
 import java.util.concurrent.TimeUnit;
@@ -13,7 +15,7 @@ public class RedisTokenBlacklistRepository {
 
     private final RedisTemplate<String, Boolean> redisTemplate;
 
-    public RedisTokenBlacklistRepository(RedisTemplate<String, Boolean> redisTemplate) {
+    public RedisTokenBlacklistRepository(@Qualifier("booleanRedisTemplate") RedisTemplate<String, Boolean> redisTemplate) {
         this.redisTemplate = redisTemplate;
     }
 

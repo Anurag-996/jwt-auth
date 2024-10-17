@@ -9,8 +9,8 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 @Configuration
 public class RedisConfig {
-    @Bean
-    public RedisTemplate<String, Boolean> redisTemplate(RedisConnectionFactory redisConnectionFactory) {
+    @Bean(name = "booleanRedisTemplate")
+    public RedisTemplate<String, Boolean> booleanRedisTemplate(RedisConnectionFactory redisConnectionFactory) {
         RedisTemplate<String, Boolean> redisTemplate = new RedisTemplate<>();
         redisTemplate.setConnectionFactory(redisConnectionFactory);
 
@@ -18,6 +18,19 @@ public class RedisConfig {
         redisTemplate.setKeySerializer(new StringRedisSerializer());
         // Use GenericToStringSerializer to serialize Boolean values
         redisTemplate.setValueSerializer(new GenericToStringSerializer<>(Boolean.class));
+
+        return redisTemplate;
+    }
+
+    @Bean(name = "integerRedisTemplate")
+    public RedisTemplate<String, Integer> integerRedisTemplate(RedisConnectionFactory redisConnectionFactory) {
+        RedisTemplate<String, Integer> redisTemplate = new RedisTemplate<>();
+        redisTemplate.setConnectionFactory(redisConnectionFactory);
+
+        // Key will be serialized as string
+        redisTemplate.setKeySerializer(new StringRedisSerializer());
+        // Value will be serialized as integer for request counts
+        redisTemplate.setValueSerializer(new GenericToStringSerializer<>(Integer.class));
 
         return redisTemplate;
     }

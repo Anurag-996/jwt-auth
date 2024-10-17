@@ -11,7 +11,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
-
 import java.security.Key;
 import java.util.Date;
 import java.util.HashMap;
@@ -56,8 +55,7 @@ public class JwtService {
     private String buildToken(
             Map<String, Object> extraClaims,
             UserDetails userDetails,
-            long expiration
-    ) {
+            long expiration) {
         return Jwts
                 .builder()
                 .setClaims(extraClaims)
@@ -95,7 +93,7 @@ public class JwtService {
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
-    public void blacklistToken(String token , Date expirationDate) {
+    public void blacklistToken(String token, Date expirationDate) {
         long expirationTimeInMillis = expirationDate.getTime() - System.currentTimeMillis();
         redisTokenBlacklistRepository.save(token, expirationTimeInMillis);
     }

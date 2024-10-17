@@ -3,22 +3,21 @@ package com.vid.VideoCall.Controller;
 import com.vid.VideoCall.Entities.CustomUserDetails;
 import com.vid.VideoCall.Entities.User;
 import com.vid.VideoCall.Jwt.JwtService;
-import com.vid.VideoCall.RequestDTOs.ForgetPasswordRequest;
-import com.vid.VideoCall.RequestDTOs.ResetPasswordRequest;
 import com.vid.VideoCall.ResponseDTOs.UserResponse;
 import com.vid.VideoCall.Service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.Date;
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/users")
+@Slf4j
 @CrossOrigin(origins = "*")
 public class UserController {
 
@@ -33,25 +32,34 @@ public class UserController {
     @GetMapping("/me")
     public ResponseEntity<Object> authenticatedUser() {
         try {
+            // Get the authentication object from the security context
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            log.info("Authentication: {}", authentication);
+
             CustomUserDetails currentUserDetails = (CustomUserDetails) authentication.getPrincipal();
             User currentUser = currentUserDetails.getUser();
 
-            UserResponse userResponse = UserResponse.builder()
-                                        .userId(currentUser.getUserId())
-                                        .userName(currentUser.getUserName())
-                                        .emailId(currentUser.getEmailId())
-                                        .updatedAt(currentUser.getUpdatedAt())
-                                        .createdAt(currentUser.getCreatedAt())
-                                        .status(currentUser.getStatus())
-                                        .build();
+            log.info("Current User: {}", currentUser.getUserName());
 
-            return ResponseEntity.status(HttpStatus.OK).body(userResponse);
+            // Proceed to create the user response
+            UserResponse userResponse = UserResponse.builder()
+                    .userId(currentUser.getUserId())
+                    .userName(currentUser.getUserName())
+                    .emailId(currentUser.getEmailId())
+                    .updatedAt(currentUser.getUpdatedAt())
+                    .createdAt(currentUser.getCreatedAt())
+                    .status(currentUser.getStatus())
+                    .build();
+
+            // Log the response for debugging
+            log.info("UserResponse: {}", userResponse);
+
+            return ResponseEntity.ok(userResponse);
         } catch (Exception e) {
+            log.error("Error occurred in authenticatedUser: ", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
         }
     }
-
 
     @GetMapping("/getAll")
     public ResponseEntity<Object> findAll() {
@@ -94,30 +102,38 @@ public class UserController {
         }
     }
 
+    // @PostMapping("/forgot-password")
+    // public ResponseEntity<Object> forgotPassword(@RequestBody
+    // ForgetPasswordRequest forgotPasswordRequest, @RequestBody HttpServletRequest
+    // httpServletRequest) {
+    // try {
+    // // Validate if email exists and send reset link with token
+    // userService.generatePasswordResetToken(forgotPasswordRequest,
+    // httpServletRequest);
+    // return ResponseEntity.status(HttpStatus.OK).body("Reset link sent
+    // successfully.");
+    // } catch (IllegalArgumentException e) {
+    // return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+    // } catch (Exception e) {
+    // return
+    // ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+    // }
+    // }
 
-//    @PostMapping("/forgot-password")
-//    public ResponseEntity<Object> forgotPassword(@RequestBody ForgetPasswordRequest forgotPasswordRequest, @RequestBody HttpServletRequest httpServletRequest) {
-//        try {
-//            // Validate if email exists and send reset link with token
-//            userService.generatePasswordResetToken(forgotPasswordRequest, httpServletRequest);
-//            return ResponseEntity.status(HttpStatus.OK).body("Reset link sent successfully.");
-//        } catch (IllegalArgumentException e) {
-//            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
-//        } catch (Exception e) {
-//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
-//        }
-//    }
-
-//    @PutMapping("/reset-password")
-//    public ResponseEntity<Object> resetPassword(@RequestBody ResetPasswordRequest resetPasswordRequest) {
-//        try {
-//            // Validate token and update password
-//            userService.resetPassword(resetPasswordRequest.getToken(), resetPasswordRequest.getNewPassword());
-//            return ResponseEntity.status(HttpStatus.OK).body("Password reset successfully.");
-//        } catch (IllegalArgumentException e) {
-//            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
-//        } catch (Exception e) {
-//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
-//        }
-//    }
+    // @PutMapping("/reset-password")
+    // public ResponseEntity<Object> resetPassword(@RequestBody ResetPasswordRequest
+    // resetPasswordRequest) {
+    // try {
+    // // Validate token and update password
+    // userService.resetPassword(resetPasswordRequest.getToken(),
+    // resetPasswordRequest.getNewPassword());
+    // return ResponseEntity.status(HttpStatus.OK).body("Password reset
+    // successfully.");
+    // } catch (IllegalArgumentException e) {
+    // return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+    // } catch (Exception e) {
+    // return
+    // ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+    // }
+    // }
 }
